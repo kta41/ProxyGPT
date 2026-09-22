@@ -12,6 +12,14 @@ spec:
     helm:
       values: |
         hostNetwork: true
+        deployment:
+          strategy: Recreate
+        livenessProbe:
+          httpGet:
+            host: 127.0.0.1
+        readinessProbe:
+          httpGet:
+            host: 127.0.0.1
         additionalArguments:
           - --providers.kubernetescrd.endpoint=https://127.0.0.1:6443
           - --providers.kubernetesingress.endpoint=https://127.0.0.1:6443
