@@ -17,6 +17,7 @@ spec:
           healthchecksPort: 9000
         updateStrategy:
           type: Recreate
+          rollingUpdate: null
         additionalArguments:
           - --providers.kubernetescrd.endpoint=https://127.0.0.1:6443
           - --providers.kubernetesingress.endpoint=https://127.0.0.1:6443
