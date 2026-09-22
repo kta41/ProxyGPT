@@ -77,6 +77,20 @@ spec:
               mountPath: /app/config.yaml
               subPath: config.yaml
               readOnly: true
+          startupProbe:
+            httpGet:
+              path: /health/liveliness
+              port: 4001
+            periodSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 120
+          readinessProbe:
+            httpGet:
+              path: /health/liveliness
+              port: 4001
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 6
       volumes:
         - name: litellm-config
           configMap:
