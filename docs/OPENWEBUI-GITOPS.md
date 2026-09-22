@@ -93,6 +93,22 @@ Argo CD detects `main`, changes the ConfigMap hash, and runs the hook Job again.
 The Job synchronizes exactly the model list. A model absent from the payload is
 removed from Open WebUI.
 
+### Tool servers
+
+Open WebUI tool servers are also declared in the configuration repository under
+`tools/tool-servers.json`. The same hook imports
+`tool_server.connections` through `/api/v1/configs/import`, so the Tavily
+connection is registered automatically after Argo CD synchronizes the
+repository. The URL points to the internal Service deployed by the separate
+MCP Application:
+
+```text
+http://web-search-mcp.default.svc.cluster.local:8000
+```
+
+Add future OpenAPI or MCP connections to that file and keep provider
+credentials in Kubernetes Secrets, never in the configuration repository.
+
 RAG changes are made in `rag/rag-config.json`. CI validates the supported keys,
 types, and safe ranges before the change can be merged. Changes to chunking,
 PDF parsing, or embeddings require re-indexing existing knowledge bases;
