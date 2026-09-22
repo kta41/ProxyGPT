@@ -9,8 +9,6 @@ spec:
   selector:
     matchLabels:
       app: litellm
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
@@ -26,20 +24,6 @@ spec:
             - /app/config.yaml
             - --port
             - "4001"
-          startupProbe:
-            httpGet:
-              path: /health/liveliness
-              port: 4001
-            periodSeconds: 5
-            timeoutSeconds: 3
-            failureThreshold: 120
-          readinessProbe:
-            httpGet:
-              path: /health/liveliness
-              port: 4001
-            periodSeconds: 5
-            timeoutSeconds: 3
-            failureThreshold: 3
           env:
             - name: LITELLM_MASTER_KEY
               valueFrom:
@@ -75,7 +59,7 @@ spec:
             - name: SECURE_COOKIES
               value: "true"
             - name: OLLAMA_API_BASE
-              value: "http://127.0.0.1:11435"
+              value: "http://10.255.255.254:11435"
             - name: OPENAI_API_KEY
               valueFrom:
                 secretKeyRef:

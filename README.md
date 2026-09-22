@@ -86,7 +86,7 @@ chmod 700 scripts/install.sh
 scripts/install.sh --env-file .env
 ```
 
-The installer verifies that Ollama is reachable at `http://127.0.0.1:11435` and
+The installer verifies that Ollama is reachable at `http://10.255.255.254:11435` and
 that the models `qwen3:14b` and `qwen3:30b` are downloaded before applying
 resources. If Argo CD, Traefik, and cert-manager already exist, answer `yes` to
 the first question to keep them.
@@ -120,7 +120,7 @@ kubectl create secret generic litellm-models -n default \
 ```
 
 LiteLLM uses the host network (`hostNetwork`) and accesses Ollama through
-`http://127.0.0.1:11435`. Port 11435 avoids the Windows `portproxy` that
+`http://10.255.255.254:11435`. Port 11435 avoids the Windows `portproxy` that
 occupies port 11434. The `qwen3-14b` and `qwen3-30b` aliases use the
 `ollama_chat`, which is required to preserve tool calls when
 Open WebUI streams the response. Ollama is configured to keep one
@@ -139,8 +139,8 @@ loaded in memory.
 To download the models manually:
 
 ```bash
-curl -fsS http://127.0.0.1:11435/api/pull -d '{"model":"qwen3:14b"}'
-curl -fsS http://127.0.0.1:11435/api/pull -d '{"model":"qwen3:30b"}'
+curl -fsS http://10.255.255.254:11435/api/pull -d '{"model":"qwen3:14b"}'
+curl -fsS http://10.255.255.254:11435/api/pull -d '{"model":"qwen3:30b"}'
 ```
 
 ## PostgreSQL and Persistence
@@ -371,7 +371,7 @@ If pods cannot reach the Internet or DNS fails in WSL2:
 ### Ollama and Qwen3 Models
 
 - LiteLLM accesses Ollama through `hostNetwork` at
-  `http://127.0.0.1:11435`.
+  `http://10.255.255.254:11435`.
 - Port 11435 avoids the Windows portproxy conflict on
   port 11434.
 - `ollama_chat` preserves tool calls during streaming.
@@ -384,8 +384,8 @@ If pods cannot reach the Internet or DNS fails in WSL2:
 Manual download:
 
 ```bash
-curl -fsS http://127.0.0.1:11435/api/pull -d '{"model":"qwen3:14b"}'
-curl -fsS http://127.0.0.1:11435/api/pull -d '{"model":"qwen3:30b"}'
+curl -fsS http://10.255.255.254:11435/api/pull -d '{"model":"qwen3:14b"}'
+curl -fsS http://10.255.255.254:11435/api/pull -d '{"model":"qwen3:30b"}'
 ```
 
 ### TLS and Internal CA
