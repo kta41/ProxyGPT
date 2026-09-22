@@ -12,6 +12,8 @@ this repository. Open WebUI workspace content is maintained in the separate
   system prompts, tools, knowledge bases and permissions.
 - `../openwebui-ai-config/knowledge/.oikb.yaml`: knowledge-base sources synced
   by the official `oikb` tool.
+- `../openwebui-ai-config/rag/rag-config.json`: Open WebUI RAG retrieval and
+  parsing configuration.
 - Kubernetes Secrets: API keys and other credentials. They must not be stored
   in either repository.
 
@@ -35,6 +37,11 @@ Use `--dry-run` to validate the payload without changing Open WebUI.
 The endpoint is administrative and experimental. Pin the Open WebUI image
 before enabling automated reconciliation and keep the API key in a Kubernetes
 Secret or an external secret manager.
+
+RAG changes that affect embeddings, PDF parsing, chunk size, overlap, or
+minimum chunk size require re-indexing existing knowledge bases. Retrieval-only
+changes such as `top_k`, reranker limits, relevance threshold, and hybrid-search
+weights do not normally require re-indexing.
 
 ## Rollout
 

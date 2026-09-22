@@ -92,3 +92,8 @@ git push
 Argo CD detects `main`, changes the ConfigMap hash, and runs the hook Job again.
 The Job synchronizes exactly the model list. A model absent from the payload is
 removed from Open WebUI.
+
+RAG changes are made in `rag/rag-config.json`. CI validates the supported keys,
+types, and safe ranges before the change can be merged. Changes to chunking,
+PDF parsing, or embeddings require re-indexing existing knowledge bases;
+retrieval-only changes can be applied without re-indexing.
