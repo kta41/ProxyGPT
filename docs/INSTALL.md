@@ -42,7 +42,7 @@ Secrets are never committed. If you answer `no`, commit and push the changed
 overlays manually before syncing Argo CD.
 
 The installer also checks the local Ollama endpoint at
-`http://10.255.255.254:11435` and requires the `qwen3:14b` and `qwen3:30b` models.
+`http://127.0.0.1:11435` and requires the `qwen3:14b` and `qwen3:30b` models.
 On Windows, set `OLLAMA_MAX_LOADED_MODELS=1` and restart Ollama so both models
 remain visible to Open WebUI while only the selected model is loaded:
 
