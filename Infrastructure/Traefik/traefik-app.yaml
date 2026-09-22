@@ -13,15 +13,10 @@ spec:
       values: |
         hostNetwork: true
         deployment:
-          strategy: Recreate
-        livenessProbe:
-          httpGet:
-            host: 127.0.0.1
-            port: 9000
-        readinessProbe:
-          httpGet:
-            host: 127.0.0.1
-            port: 9000
+          healthchecksHost: 127.0.0.1
+          healthchecksPort: 9000
+        updateStrategy:
+          type: Recreate
         additionalArguments:
           - --providers.kubernetescrd.endpoint=https://127.0.0.1:6443
           - --providers.kubernetesingress.endpoint=https://127.0.0.1:6443
