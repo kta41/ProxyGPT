@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-search-mcp
+  labels:
+    app: web-search-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-search-mcp
+  template:
+    metadata:
+      labels:
+        app: web-search-mcp
+    spec:
+      containers:
+        - name: mcpo
+          image: ghcr.io/open-webui/mcpo:main
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - >-
+              exec mcpo --host 0.0.0.0 --port 8000
+              --server-type streamable-http
+              -- "https://mcp.tavily.com/mcp/?tavilyApiKey=${TAVILY_API_KEY}"
+          env:
+            - name: TAVILY_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: web-search-mcp
+                  key: tavily-api-key
+          ports:
+            - name: http
+              containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /docs
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /docs
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20

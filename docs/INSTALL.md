@@ -59,6 +59,42 @@ repository. To enable custom models and prompts from a compatible repository,
 follow [the optional Open WebUI GitOps guide](OPENWEBUI-GITOPS.md) after the
 base installation.
 
+## MCP tools
+
+MCP integrations are managed separately from the model stack under
+`deploy/mcp/`. Each MCP server gets its own adapter Deployment and internal
+Service so credentials, upgrades, and failures remain isolated. The first
+integration is Tavily web search, exposed through MCPO as an OpenAPI tool
+server for Open WebUI.
+
+The Tavily credential is not stored in Git. Create or update the existing
+Secret in the `default` namespace before enabling the Argo CD Application:
+
+```bash
+kubectl create secret generic web-search-mcp \
+  --namespace default \
+  --from-literal=tavily-api-key='YOUR_TAVILY_API_KEY' \
+  --dry-run=client \
+  -o yaml | kubectl apply -f -
+```
+
+The Deployment reads the `tavily-api-key` key from `web-search-mcp`. Register
+the internal OpenAPI server in Open WebUI using:
+
+```text
+http://web-search-mcp.default.svc.cluster.local:8000
+```
+
+Apply the MCP Argo CD Application once:
+
+```bash
+kubectl apply -f deploy/argocd/mcp-app.yaml
+```
+
+To add another MCP later, create another server directory under
+`deploy/mcp/servers/` and include it from the production overlay. Do not
+reuse Tavily credentials or place provider keys in tracked manifests.
+
 ## Rendering checks
 
 Render the overlays before applying changes:
@@ -67,4 +103,5 @@ Render the overlays before applying changes:
 kubectl kustomize deploy/postgres/base >/dev/null
 kubectl kustomize deploy/litellm/overlays/prod >/dev/null
 kubectl kustomize deploy/openwebui/overlays/prod >/dev/null
+kubectl kustomize deploy/mcp/overlays/prod >/dev/null
 ```
