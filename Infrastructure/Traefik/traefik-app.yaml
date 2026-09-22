@@ -12,6 +12,9 @@ spec:
     helm:
       values: |
         hostNetwork: true
+        additionalArguments:
+          - --providers.kubernetescrd.endpoint=https://127.0.0.1:6443
+          - --providers.kubernetesingress.endpoint=https://127.0.0.1:6443
         service:
           type: ClusterIP
   destination:
