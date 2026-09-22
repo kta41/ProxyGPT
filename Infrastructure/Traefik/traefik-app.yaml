@@ -17,9 +17,11 @@ spec:
         livenessProbe:
           httpGet:
             host: 127.0.0.1
+            port: 9000
         readinessProbe:
           httpGet:
             host: 127.0.0.1
+            port: 9000
         additionalArguments:
           - --providers.kubernetescrd.endpoint=https://127.0.0.1:6443
           - --providers.kubernetesingress.endpoint=https://127.0.0.1:6443
