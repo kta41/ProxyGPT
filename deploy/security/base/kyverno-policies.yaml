@@ -1,0 +1,108 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: baseline-workload-security
+  annotations:
+    policies.kyverno.io/title: Baseline workload security
+    policies.kyverno.io/description: >-
+      Audits baseline pod hardening requirements before they are enforced.
+      Existing exceptions are documented in docs/SECURITY-EXCEPTIONS.md.
+spec:
+  validationFailureAction: Audit
+  background: true
+  rules:
+    - name: disallow-privileged
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: Privileged containers are not permitted.
+        pattern:
+          spec:
+            containers:
+              - securityContext:
+                  privileged: "false"
+    - name: disallow-privilege-escalation
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: Privilege escalation must be disabled.
+        pattern:
+          spec:
+            containers:
+              - securityContext:
+                  allowPrivilegeEscalation: false
+    - name: require-runtime-default-seccomp
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: Pods must use the RuntimeDefault seccomp profile.
+        pattern:
+          spec:
+            securityContext:
+              seccompProfile:
+                type: RuntimeDefault
+    - name: require-resource-bounds
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: Every container must define CPU and memory requests and limits.
+        pattern:
+          spec:
+            containers:
+              - resources:
+                  requests:
+                    cpu: "?*"
+                    memory: "?*"
+                  limits:
+                    cpu: "?*"
+                    memory: "?*"
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: baseline-image-policy
+  annotations:
+    policies.kyverno.io/title: Baseline image policy
+    policies.kyverno.io/description: >-
+      Audits mutable latest image references and hostPath volumes. Images are
+      being pinned progressively without breaking the current runtime.
+spec:
+  validationFailureAction: Audit
+  background: true
+  rules:
+    - name: disallow-latest-tag
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: Images must not use the latest tag.
+        pattern:
+          spec:
+            containers:
+              - image: "!*:latest"
+    - name: disallow-hostpath
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: hostPath volumes require a reviewed exception.
+        pattern:
+          spec:
+            =(volumes):
+              - X(hostPath): "null"

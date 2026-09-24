@@ -59,6 +59,7 @@ render_overlays() {
     "$ROOT_DIR/deploy/litellm/overlays/prod"
     "$ROOT_DIR/deploy/openwebui/overlays/prod"
     "$ROOT_DIR/deploy/mcp/overlays/prod"
+    "$ROOT_DIR/deploy/security/overlays/prod"
   )
 
   for overlay in "${overlays[@]}"; do
@@ -66,10 +67,10 @@ render_overlays() {
     kubectl kustomize "$overlay" >/dev/null
   done
 
+  local index=0
   for overlay in "${overlays[@]}"; do
-    local name
-    name="$(basename "$overlay")"
-    kubectl kustomize "$overlay" > "$TEMP_DIR/${name}.yaml"
+    kubectl kustomize "$overlay" > "$TEMP_DIR/rendered-${index}.yaml"
+    index=$((index + 1))
   done
 
   python3 - "$TEMP_DIR" <<'PY'

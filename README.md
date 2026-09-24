@@ -115,6 +115,26 @@ The validation baseline includes:
 
 This keeps the GitOps flow clear: GitHub validates, Argo CD deploys, and Kubernetes reflects the runtime state.
 
+### Kubernetes security baseline (M1)
+
+The M1 baseline is versioned under [`deploy/security/`](deploy/security/) and
+is reconciled by the [`security-baseline` Argo CD Application](deploy/argocd/security-app.yaml).
+It provides:
+
+- default-deny ingress and egress policies for the application namespace
+- explicit service-to-service access for Open WebUI, LiteLLM, PostgreSQL and MCP
+- DNS and required HTTPS egress
+- Kyverno audit policies for privileged containers, privilege escalation,
+  seccomp, resource bounds, mutable `latest` images and `hostPath`
+- baseline container hardening and resource limits in the application Deployments
+
+Kyverno is installed declaratively by
+[`deploy/argocd/kyverno-app.yaml`](deploy/argocd/kyverno-app.yaml). The
+policies start in `Audit` mode so existing workloads can be measured before
+enforcement. The required `hostNetwork` exception for LiteLLM and the storage
+exceptions are documented in
+[`docs/SECURITY-EXCEPTIONS.md`](docs/SECURITY-EXCEPTIONS.md).
+
 When the PostgreSQL cluster is enabled, the final deployment step is to create the Open WebUI database:
 
 ```bash

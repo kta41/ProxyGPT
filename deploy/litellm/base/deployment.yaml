@@ -19,6 +19,20 @@ spec:
       containers:
         - name: litellm
           image: ghcr.io/berriai/litellm:main-latest
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "2000m"
+              memory: "4Gi"
           args:
             - --config
             - /app/config.yaml

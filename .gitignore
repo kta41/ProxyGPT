@@ -5,3 +5,5 @@ Infrastructure/CertManager/CA/*-secret.yaml
 .env
 
 .vscode/
+docs/ROADMAP.md
+.github/copilot-instructions.md

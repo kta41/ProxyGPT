@@ -17,6 +17,20 @@ spec:
       containers:
         - name: mcpo
           image: ghcr.io/open-webui/mcpo:main
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
           command:
             - /bin/sh
             - -c
