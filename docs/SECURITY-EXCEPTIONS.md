@@ -20,6 +20,12 @@ PostgreSQL and Open WebUI write to PVC-backed application data directories.
 `readOnlyRootFilesystem` is therefore not enabled in M1; enabling it requires
 testing writable temporary/configuration paths first.
 
+The official PostgreSQL image also performs ownership and permission changes
+when it starts against the existing PVC. The PostgreSQL container does not
+drop all Linux capabilities in M1 because doing so causes startup failure with
+`Operation not permitted`; the pod-level `RuntimeDefault` seccomp profile and
+resource limits remain enabled.
+
 ## Kyverno rollout mode
 
 The initial Kyverno policies use `validationFailureAction: Audit`. This makes

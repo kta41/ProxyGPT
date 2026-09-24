@@ -39,7 +39,8 @@ from the Secret `litellm-models`.
 │   ├── argocd/
 │   ├── postgres/
 │   ├── litellm/
-│   └── openwebui/
+│   ├── openwebui/
+│   └── security/        # Kyverno policies and NetworkPolicies
 ├── Infrastructure/      # Argo CD, cert-manager, Traefik, and Gitea
 ├── docs/
 └── scripts/
@@ -89,7 +90,9 @@ scripts/install.sh --env-file .env
 The installer verifies that Ollama is reachable at `http://127.0.0.1:11435` and
 that the models `qwen3:14b` and `qwen3:30b` are downloaded before applying
 resources. If Argo CD, Traefik, and cert-manager already exist, answer `yes` to
-the first question to keep them.
+the first question to keep them. The installer also submits the Kyverno Argo CD
+Application before the security baseline and waits for the Kyverno CRDs before
+submitting the policy Application.
 
 The orchestration manifests can also be applied manually:
 
@@ -130,10 +133,26 @@ It provides:
 
 Kyverno is installed declaratively by
 [`deploy/argocd/kyverno-app.yaml`](deploy/argocd/kyverno-app.yaml). The
-policies start in `Audit` mode so existing workloads can be measured before
-enforcement. The required `hostNetwork` exception for LiteLLM and the storage
-exceptions are documented in
+Application is managed in the `argocd` namespace and deploys Kyverno into the
+`kyverno` namespace. Its CRDs use server-side apply because some Kyverno CRDs
+exceed the Kubernetes client-side annotation limit. The policies start in
+`Audit` mode so existing workloads can be measured before enforcement. The
+required `hostNetwork` exception for LiteLLM, PostgreSQL PVC initialization
+compatibility, and storage exceptions are documented in
 [`docs/SECURITY-EXCEPTIONS.md`](docs/SECURITY-EXCEPTIONS.md).
+
+To inspect the M1 state:
+
+```bash
+kubectl get application kyverno security-baseline -n argocd
+kubectl get pods -n kyverno
+kubectl get clusterpolicies
+kubectl get networkpolicies -n default
+```
+
+Kyverno currently reports policy violations for workloads that have not yet
+been migrated to the baseline. This is expected while the policies remain in
+`Audit` mode; it does not block deployment.
 
 When the PostgreSQL cluster is enabled, the final deployment step is to create the Open WebUI database:
 
