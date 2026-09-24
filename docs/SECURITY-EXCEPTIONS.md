@@ -34,3 +34,5 @@ created in `argocd` and tolerates the short interval in which Kyverno CRDs
 are still being installed; Argo CD retries until the policies can be applied.
 The Kyverno Application uses server-side apply because its CRDs exceed the
 Kubernetes client-side annotation limit.
+Argo CD ignores generated CRD metadata annotations for this Application so
+server-side ownership metadata does not produce a false `OutOfSync` state.
