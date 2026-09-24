@@ -1,36 +1,63 @@
-name: Validate AI configuration
+name: Validate ProxyGPT GitOps
 
 on:
   pull_request:
     paths:
-      - "deploy/litellm/**"
-      - "scripts/sync-openwebui-config.sh"
-      - "docs/CONFIG-GITOPS.md"
+      - ".github/workflows/validate-ai-config.yml"
+      - "deploy/**"
+      - "Infrastructure/**"
+      - "scripts/**"
+      - "README.md"
+      - "docs/**"
   push:
     branches: [main, "feat/**"]
     paths:
-      - "deploy/litellm/**"
-      - "scripts/sync-openwebui-config.sh"
-      - "docs/CONFIG-GITOPS.md"
+      - ".github/workflows/validate-ai-config.yml"
+      - "deploy/**"
+      - "Infrastructure/**"
+      - "scripts/**"
+      - "README.md"
+      - "docs/**"
 
 jobs:
   validate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Install validation dependencies
-        run: python3 -m pip install --disable-pip-version-check PyYAML
-      - name: Validate LiteLLM YAML
         run: |
-          python3 - <<'PY'
-          import pathlib
-          import sys
-          try:
-              import yaml
-          except ImportError:
-              print("PyYAML is required by the runner image", file=sys.stderr)
-              raise
-          yaml.safe_load(pathlib.Path("deploy/litellm/base/config.yaml").read_text())
-          PY
-      - name: Check synchronizer syntax
-        run: bash -n scripts/sync-openwebui-config.sh
+          python3 -m pip install --disable-pip-version-check PyYAML
+
+      - name: Validate shell syntax
+        run: |
+          bash -n scripts/install.sh
+          bash -n scripts/sync-openwebui-config.sh
+          bash -n scripts/validate-manifests.sh
+
+      - name: Validate YAML and render Kustomize overlays
+        run: bash scripts/validate-manifests.sh
+
+      - name: Secret scanning
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: IaC and config scanning
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: 1

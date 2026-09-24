@@ -99,6 +99,22 @@ kubectl apply -f deploy/argocd/
 
 ArgoCD will synchronize resources in the correct order, manage dependencies, and ensure that the cluster state matches this repository.
 
+### CI/CD validation baseline (M0)
+
+This repository validates infrastructure changes before merge. GitHub Actions are used for validation only: they do not deploy to Kubernetes. Argo CD remains the deployment controller and reconciles the repository to the cluster.
+
+This repository owns the infrastructure layer (`ProxyGPT`), while the functional Open WebUI configuration remains in the separate repository `openwebui-ai-config`. The validation pipeline therefore guards the GitOps source of truth for the cluster, without mixing deployment with functional app configuration.
+
+The validation baseline includes:
+
+- shell syntax checks for the deployment scripts
+- YAML parsing checks for the repository manifests
+- Kustomize render validation for the production overlays
+- secret scanning with Gitleaks
+- IaC/config scanning with Trivy
+
+This keeps the GitOps flow clear: GitHub validates, Argo CD deploys, and Kubernetes reflects the runtime state.
+
 When the PostgreSQL cluster is enabled, the final deployment step is to create the Open WebUI database:
 
 ```bash
