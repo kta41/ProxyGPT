@@ -28,6 +28,9 @@ legacy image references or have not yet been fully hardened. Individual rules
 can move to `Enforce` after the audit report is clean.
 
 Kyverno is installed declaratively by
-[`deploy/argocd/kyverno-app.yaml`](../deploy/argocd/kyverno-app.yaml). Its
-sync wave runs before the `security-baseline` Application so the Kyverno CRDs
-exist before the policies are applied.
+[`deploy/argocd/kyverno-app.yaml`](../deploy/argocd/kyverno-app.yaml) in the
+existing Argo CD namespace (`argocd`). The security Application is also
+created in `argocd` and tolerates the short interval in which Kyverno CRDs
+are still being installed; Argo CD retries until the policies can be applied.
+The Kyverno Application uses server-side apply because its CRDs exceed the
+Kubernetes client-side annotation limit.

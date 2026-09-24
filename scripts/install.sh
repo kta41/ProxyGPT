@@ -254,10 +254,37 @@ elif [[ "$CUSTOM_DOMAINS" == true ]]; then
   exit 1
 fi
 
-echo "Applying existing Argo CD Application manifests (no project manifests are changed)."
-find "$ROOT_DIR/deploy/argocd" "$ROOT_DIR/Infrastructure" -type f -name '*app.yaml' -print0 |
+echo "Applying Argo CD Application manifests (no project manifests are changed)."
+
+KYVERNO_APP="$ROOT_DIR/deploy/argocd/kyverno-app.yaml"
+SECURITY_APP="$ROOT_DIR/deploy/argocd/security-app.yaml"
+
+if [[ -f "$KYVERNO_APP" ]]; then
+  echo "Submitting Kyverno to Argo CD before its policy resources."
+  kubectl apply -f "$KYVERNO_APP"
+fi
+
+find "$ROOT_DIR/deploy/argocd" "$ROOT_DIR/Infrastructure" \
+  -type f -name '*app.yaml' \
+  ! -path "$KYVERNO_APP" \
+  ! -path "$SECURITY_APP" \
+  -print0 |
   while IFS= read -r -d '' manifest; do
     kubectl apply -f "$manifest"
   done
+
+if [[ -f "$KYVERNO_APP" && -f "$SECURITY_APP" ]]; then
+  echo "Waiting for Kyverno CRDs before submitting the security baseline."
+  deadline=$((SECONDS + 600))
+  until kubectl get crd clusterpolicies.kyverno.io >/dev/null 2>&1 &&
+        kubectl get crd policyreports.wgpolicyk8s.io >/dev/null 2>&1; do
+    if ((SECONDS >= deadline)); then
+      echo "Kyverno CRDs were not ready before the timeout; security Application was not applied." >&2
+      exit 1
+    fi
+    sleep 5
+  done
+  kubectl apply -f "$SECURITY_APP"
+fi
 echo "Selected domains: LiteLLM=$LITELLM_DOMAIN OpenWebUI=$OPENWEBUI_DOMAIN"
 echo "Installation submitted. Argo CD will reconcile the Applications."
