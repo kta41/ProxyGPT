@@ -203,10 +203,13 @@ Knowledge Bases. See [`docs/RAG.md`](docs/RAG.md) for setup and usage.
 
 The Qdrant deployment, PVC, service, network policy, Argo CD Application, both
 Knowledge Bases, and OIKB configuration are in place. Runtime checks confirmed
-Open WebUI and Qdrant are ready and OIKB is deployed. M2 remains incomplete:
-LiteLLM's embedding request currently fails because Ollama is not reachable at
-`127.0.0.1:11435`; indexing and an end-to-end cited answer still need to be
-verified. See [`docs/RAG.md`](docs/RAG.md).
+Open WebUI and Qdrant are ready, OIKB is deployed, and Ollama's embedding model
+is available through LiteLLM. Indexing exposed an egress-policy gap: LiteLLM
+uses `hostNetwork`, so Open WebUI could not reach its endpoint through the
+pod-selector rule. The production overlay now permits only TCP 4001 to the
+current node's exact internal IP. M2 remains incomplete until Argo CD
+reconciles that rule and a re-indexed document produces a verified cited
+answer. See [`docs/RAG.md`](docs/RAG.md).
 
 ### MCP and AI guardrails
 

@@ -103,6 +103,12 @@ endpoint using the `qwen3-embedding` alias. LiteLLM forwards those requests to
 the Ollama model `qwen3-embedding:0.6b`. Generation continues to use the
 selected chat model, such as `qwen3-14b`.
 
+LiteLLM uses `hostNetwork` to reach Ollama on the host. In the current
+single-node production cluster, Open WebUI therefore needs a narrowly scoped
+egress rule to the node's internal IP (`192.168.1.141/32`) on TCP 4001, the
+LiteLLM pod's target port behind Service port 4000. This exception is in the
+production security overlay; update its IP if the node address changes.
+
 The Open WebUI Qdrant integration uses the `open-webui` collection prefix. The
 standalone CLI uses a distinct collection and will not populate a Knowledge
 Base. Changing embedding models or chunking settings requires reindexing the

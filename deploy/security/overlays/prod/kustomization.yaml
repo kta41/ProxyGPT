@@ -1,2 +1,18 @@
 resources:
   - ../../base
+patches:
+  - target:
+      group: networking.k8s.io
+      version: v1
+      kind: NetworkPolicy
+      name: allow-openwebui-egress
+    patch: |-
+      - op: add
+        path: /spec/egress/-
+        value:
+          to:
+            - ipBlock:
+                cidr: 192.168.1.141/32
+          ports:
+            - protocol: TCP
+              port: 4001
