@@ -26,18 +26,20 @@ drop all Linux capabilities in M1 because doing so causes startup failure with
 `Operation not permitted`; the pod-level `RuntimeDefault` seccomp profile and
 resource limits remain enabled.
 
-## Kyverno rollout mode
+## Kyverno policy scope and rollout
 
-The initial Kyverno policies use `validationFailureAction: Audit`. This makes
-the baseline observable without blocking existing workloads that still use
-legacy image references or have not yet been fully hardened. Individual rules
-can move to `Enforce` after the audit report is clean.
+The checked-in policies use `validationFailureAction: Enforce` and match only
+Pods in `default`, the namespace targeted by the ProxyGPT application
+Applications. The manifests enforce explicit non-privileged containers,
+disabled privilege escalation, `RuntimeDefault` seccomp, resource bounds,
+non-`latest` images, and no unreviewed `hostPath`.
 
-The baseline excludes the `argocd`, `cert-manager`, `kube-system` and
-`kyverno` namespaces. Those components are installed or managed by cluster
-platform tooling and are not owned by this repository's application
-manifests. Their security posture must be reviewed separately before adding
-them to the enforcement scope.
+Namespaces used by Argo CD, cert-manager, Kubernetes, and Kyverno are outside
+this policy scope because they are managed by platform tooling and are not
+owned by the ProxyGPT application manifests. Their security posture requires
+separate review before broadening the scope. M1 is complete at runtime only
+after Argo CD has reconciled these Git changes and current application
+workloads pass admission/report checks.
 
 ## Qdrant process UID
 

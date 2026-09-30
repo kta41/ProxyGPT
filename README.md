@@ -166,15 +166,15 @@ The validation baseline includes:
 
 ### Kubernetes Security Baseline (M1)
 
-The M1 baseline is versioned under [`deploy/security/`](deploy/security/) and is reconciled by the [`security-baseline` Argo CD Application](deploy/argocd/security-app.yaml). It provides:
+The M1 baseline is versioned under [`deploy/security/`](deploy/security/) and is reconciled by the [`security-baseline` Argo CD Application](deploy/argocd/security-app.yaml). The repository desired state enforces the workload and image rules for applications in `default`; platform namespaces are deliberately outside this policy scope. Application Pods disable service-account token automount and use `RuntimeDefault` seccomp, non-privileged containers, and bounded resources. The baseline provides:
 
 - Default-deny ingress and egress policies for the application namespace.
 - Explicit service-to-service access for Open WebUI, LiteLLM, PostgreSQL, and MCP.
 - DNS and required HTTPS egress.
-- Kyverno audit policies for privileged containers, privilege escalation, seccomp, resource bounds, mutable `latest` images, and `hostPath`.
+- Kyverno enforcement for privileged containers, privilege escalation, seccomp, resource bounds, explicit `latest` image tags, and `hostPath`.
 - Baseline container hardening and resource limits in the application Deployments.
 
-Kyverno is installed declaratively by [`deploy/argocd/kyverno-app.yaml`](deploy/argocd/kyverno-app.yaml). The Application is managed in the `argocd` namespace and deploys Kyverno into the `kyverno` namespace. Its CRDs use server-side apply because some Kyverno CRDs exceed the Kubernetes client-side annotation limit. The policies start in `Audit` mode so existing workloads can be measured before enforcement. The required `hostNetwork` exception for LiteLLM, PostgreSQL PVC initialization compatibility, and storage exceptions are documented in [`docs/SECURITY-EXCEPTIONS.md`](docs/SECURITY-EXCEPTIONS.md).
+Kyverno is installed declaratively by [`deploy/argocd/kyverno-app.yaml`](deploy/argocd/kyverno-app.yaml). The Application is managed in the `argocd` namespace and deploys Kyverno into the `kyverno` namespace. Its CRDs use server-side apply because some Kyverno CRDs exceed the Kubernetes client-side annotation limit. The Git desired state now uses `Enforce` for `default`; the cluster still needs Argo CD reconciliation and a fresh report check before runtime completion can be claimed. The required `hostNetwork` exception for LiteLLM, PostgreSQL PVC initialization compatibility, and storage exceptions are documented in [`docs/SECURITY-EXCEPTIONS.md`](docs/SECURITY-EXCEPTIONS.md).
 
 To inspect the M1 state:
 
@@ -185,20 +185,54 @@ kubectl get clusterpolicies
 kubectl get networkpolicies -n default
 ```
 
-Kyverno currently reports policy violations for workloads that have not yet been migrated to the baseline. This is expected while the policies remain in `Audit` mode; it does not block deployment.
+The checked-in manifests are not proof that the cluster has reconciled the new policy. Verify that `security-baseline` is `Synced` / `Healthy` and that the current application workloads are accepted by Kyverno before considering M1 complete at runtime. Changes are delivered by Argo CD; do not apply a parallel permanent state with `kubectl`.
 
 ### Private RAG baseline (M2)
 
 Open WebUI's native Knowledge Bases use the in-cluster Qdrant vector store.
 Documents can be uploaded and managed in **Workspace → Knowledge**; selected
 Markdown files from `openwebui-ai-config/knowledge` can be synchronized into a
-separate Knowledge Base by the official `oikb` daemon. Both sources are then
-available to attach to a chat or model in Open WebUI.
+separate Knowledge Base by the official `oikb` daemon. After setup and a
+successful sync, either source can be attached to a chat or model in Open WebUI.
 
 Open WebUI uses the local `qwen3-embedding:0.6b` model through LiteLLM for
 embeddings. The standalone `proxygpt-rag` CLI remains an optional development
 and retrieval tool; its collection is separate from Open WebUI's native
 Knowledge Bases. See [`docs/RAG.md`](docs/RAG.md) for setup and usage.
+
+The repository contains the Qdrant deployment, PVC, service, network policy,
+and Argo CD Application. This is only the infrastructure portion of M2: the
+Git-managed Knowledge Base requires a real ID created in Open WebUI and entered
+in the separate `openwebui-ai-config` repository. The full setup and runtime
+checks are in [`docs/RAG.md`](docs/RAG.md).
+
+At the last runtime inspection, Qdrant and its PVC were healthy, but Open WebUI
+was in CrashLoop and the external Argo CD sync had failed waiting for OIKB.
+The external source list was still empty. M2 therefore remains operationally
+incomplete until Open WebUI/OIKB recover, the Knowledge Base ID is configured,
+and a cited answer is verified end to end.
+
+### MCP and AI guardrails
+
+The deployed MCP integration is the Tavily web-search proxy, not a general
+agent execution service. NetworkPolicy limits its ingress to Open WebUI and
+egress to HTTPS; requests sent to Tavily leave the cluster. The standalone RAG
+CLI now applies input bounds, blocks common credential/personal-data patterns,
+and rejects generated citations that do not match retrieved evidence. OWASP-
+aligned deterministic regression tests run in CI. These controls do not yet
+intercept normal Open WebUI chats or replace an AI red-team assessment; details
+are in [`docs/AI-SECURITY.md`](docs/AI-SECURITY.md).
+
+### Langfuse preparation
+
+An optional Argo CD Helm Application is prepared for the official Langfuse
+chart, pinned to `2.1.3`, with signup and chart-managed Ingress disabled by
+default. It is intentionally not registered in the always-applied
+`deploy/argocd/` set. The current cluster does not advertise the ClickHouse
+operator resources required by the chart's bundled ClickHouse; see
+[`docs/LANGFUSE.md`](docs/LANGFUSE.md) before enabling it. LiteLLM tracing is
+not enabled until Langfuse has been deployed and its API credentials have been
+provisioned outside Git.
 
 ---
 

@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Protocol
 
 from proxygpt_rag.documents import Chunk, chunk_markdown, iter_markdown
+from proxygpt_rag.guardrails import validate_answer, validate_question
 
 
 @dataclass(frozen=True)
@@ -122,9 +123,7 @@ class RagPipeline:
         return document_count, chunk_count
 
     def retrieve(self, question: str, *, limit: int) -> list[SearchResult]:
-        question = question.strip()
-        if not question:
-            raise ValueError("Question must not be empty.")
+        question = validate_question(question)
         if limit <= 0:
             raise ValueError("limit must be greater than zero.")
 
@@ -142,9 +141,11 @@ class RagPipeline:
         context: list[SearchResult],
         generator: TextGenerator,
     ) -> str:
+        question = validate_question(question)
         if not context:
             return "No relevant indexed sources were found; no answer was generated."
-        return generator.answer(question.strip(), context)
+        response = generator.answer(question, context)
+        return validate_answer(response, {result.citation for result in context})
 
 
 def _is_finite(value: float) -> bool:

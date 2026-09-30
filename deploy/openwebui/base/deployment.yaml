@@ -12,6 +12,7 @@ spec:
       labels:
         app: open-webui
     spec:
+      automountServiceAccountToken: false
       securityContext:
         seccompProfile:
           type: RuntimeDefault
@@ -20,6 +21,7 @@ spec:
         image: ghcr.io/open-webui/open-webui@sha256:90eae5b419e40b4c3dd684582b2c83440b36f9ae2f6532c09639b2ba4ee65158
         securityContext:
           allowPrivilegeEscalation: false
+          privileged: false
           capabilities:
             drop:
             - ALL

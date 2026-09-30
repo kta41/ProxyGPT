@@ -14,16 +14,19 @@ spec:
       labels:
         app: web-search-mcp
     spec:
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: mcpo
           image: ghcr.io/open-webui/mcpo:main
           securityContext:
             allowPrivilegeEscalation: false
+            privileged: false
             capabilities:
               drop:
                 - ALL
-            seccompProfile:
-              type: RuntimeDefault
           resources:
             requests:
               cpu: "50m"

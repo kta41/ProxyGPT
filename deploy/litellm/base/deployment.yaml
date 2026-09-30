@@ -16,11 +16,16 @@ spec:
     spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: litellm
           image: ghcr.io/berriai/litellm:main-latest
           securityContext:
             allowPrivilegeEscalation: false
+            privileged: false
             capabilities:
               drop:
                 - ALL

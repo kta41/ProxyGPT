@@ -5,10 +5,10 @@ metadata:
   annotations:
     policies.kyverno.io/title: Baseline workload security
     policies.kyverno.io/description: >-
-      Audits baseline pod hardening requirements before they are enforced.
-      Existing exceptions are documented in docs/SECURITY-EXCEPTIONS.md.
+      Enforces baseline pod hardening for application workloads managed in the
+      default namespace. Platform namespaces are outside this policy scope.
 spec:
-  validationFailureAction: Audit
+  validationFailureAction: Enforce
   background: true
   rules:
     - name: disallow-privileged
@@ -17,14 +17,8 @@ spec:
           - resources:
               kinds:
                 - Pod
-      exclude:
-        any:
-          - resources:
               namespaces:
-                - argocd
-                - cert-manager
-                - kube-system
-                - kyverno
+                - default
       validate:
         message: Privileged containers are not permitted.
         pattern:
@@ -38,14 +32,8 @@ spec:
           - resources:
               kinds:
                 - Pod
-      exclude:
-        any:
-          - resources:
               namespaces:
-                - argocd
-                - cert-manager
-                - kube-system
-                - kyverno
+                - default
       validate:
         message: Privilege escalation must be disabled.
         pattern:
@@ -59,14 +47,8 @@ spec:
           - resources:
               kinds:
                 - Pod
-      exclude:
-        any:
-          - resources:
               namespaces:
-                - argocd
-                - cert-manager
-                - kube-system
-                - kyverno
+                - default
       validate:
         message: Pods must use the RuntimeDefault seccomp profile.
         pattern:
@@ -80,14 +62,8 @@ spec:
           - resources:
               kinds:
                 - Pod
-      exclude:
-        any:
-          - resources:
               namespaces:
-                - argocd
-                - cert-manager
-                - kube-system
-                - kyverno
+                - default
       validate:
         message: Every container must define CPU and memory requests and limits.
         pattern:
@@ -108,10 +84,10 @@ metadata:
   annotations:
     policies.kyverno.io/title: Baseline image policy
     policies.kyverno.io/description: >-
-      Audits mutable latest image references and hostPath volumes. Images are
-      being pinned progressively without breaking the current runtime.
+      Enforces explicit latest-tag and hostPath restrictions for application
+      workloads managed in the default namespace.
 spec:
-  validationFailureAction: Audit
+  validationFailureAction: Enforce
   background: true
   rules:
     - name: disallow-latest-tag
@@ -120,14 +96,8 @@ spec:
           - resources:
               kinds:
                 - Pod
-      exclude:
-        any:
-          - resources:
               namespaces:
-                - argocd
-                - cert-manager
-                - kube-system
-                - kyverno
+                - default
       validate:
         message: Images must not use the latest tag.
         pattern:
@@ -140,14 +110,8 @@ spec:
           - resources:
               kinds:
                 - Pod
-      exclude:
-        any:
-          - resources:
               namespaces:
-                - argocd
-                - cert-manager
-                - kube-system
-                - kyverno
+                - default
       validate:
         message: hostPath volumes require a reviewed exception.
         pattern:

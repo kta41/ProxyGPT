@@ -56,6 +56,9 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: TCP
+          port: 8080
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -131,6 +134,25 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
+  name: allow-openwebui-config-sync-egress
+spec:
+  podSelector:
+    matchLabels:
+      app: openwebui-model-sync
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: open-webui
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
   name: allow-litellm-ingress
 spec:
   podSelector:
@@ -146,6 +168,9 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: TCP
+          port: 4001
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

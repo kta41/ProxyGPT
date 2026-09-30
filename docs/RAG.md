@@ -116,3 +116,8 @@ bash scripts/validate-manifests.sh
 
 The CLI tests exercise its own indexing pipeline. The live UI test requires
 the cluster, the embedding model in Ollama, and a completed OIKB sync.
+
+The CLI `ask` and `search` flows also apply deterministic input/output
+guardrails and OWASP-aligned regression tests; they do not protect normal
+Open WebUI chat. See [`AI-SECURITY.md`](AI-SECURITY.md) for scope and
+limitations.
