@@ -189,18 +189,16 @@ Kyverno currently reports policy violations for workloads that have not yet been
 
 ### Private RAG baseline (M2)
 
-M2 adds a persistent, in-cluster Qdrant vector store and a local CLI that
-ingests Markdown, creates embeddings through Ollama, retrieves source chunks,
-and can generate source-grounded answers through LiteLLM. It uses the
-`qwen3-embedding:0.6b` embedding model by default. The CLI runs on an operator
-workstation; Qdrant remains a ClusterIP-only service with a persistent PVC and
-no Ingress or NodePort.
+Open WebUI's native Knowledge Bases use the in-cluster Qdrant vector store.
+Documents can be uploaded and managed in **Workspace → Knowledge**; selected
+Markdown files from `openwebui-ai-config/knowledge` can be synchronized into a
+separate Knowledge Base by the official `oikb` daemon. Both sources are then
+available to attach to a chat or model in Open WebUI.
 
-The implementation is in [`rag/`](rag/) and the Qdrant manifests are managed
-by [`deploy/argocd/rag-app.yaml`](deploy/argocd/rag-app.yaml). See
-[`docs/RAG.md`](docs/RAG.md) for setup and usage. M2 does not change Open
-WebUI's built-in Knowledge Base behavior; the CLI exposes retrieval and
-grounded answers as a separately testable foundation.
+Open WebUI uses the local `qwen3-embedding:0.6b` model through LiteLLM for
+embeddings. The standalone `proxygpt-rag` CLI remains an optional development
+and retrieval tool; its collection is separate from Open WebUI's native
+Knowledge Bases. See [`docs/RAG.md`](docs/RAG.md) for setup and usage.
 
 ---
 

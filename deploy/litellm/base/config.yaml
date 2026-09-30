@@ -17,6 +17,11 @@ model_list:
       supports_parallel_function_calling: true
       supports_tool_choice: true
 
+  - model_name: qwen3-embedding
+    litellm_params:
+      model: ollama/qwen3-embedding:0.6b
+      api_base: os.environ/OLLAMA_API_BASE
+
   - model_name: gpt-4o-mini
     litellm_params:
       model: openai/gpt-4o-mini

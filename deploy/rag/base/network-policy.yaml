@@ -13,6 +13,9 @@ spec:
         - podSelector:
             matchLabels:
               app: rag-client
+        - podSelector:
+            matchLabels:
+              app: open-webui
       ports:
         - protocol: TCP
           port: 6333
