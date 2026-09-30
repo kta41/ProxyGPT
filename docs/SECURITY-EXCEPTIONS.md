@@ -39,6 +39,16 @@ platform tooling and are not owned by this repository's application
 manifests. Their security posture must be reviewed separately before adding
 them to the enforcement scope.
 
+## Qdrant process UID
+
+The pinned official Qdrant image (`qdrant/qdrant:v1.19.1`) defaults to UID 0.
+M2 keeps that UID because the provided image is built with `USER_ID=0`; changing
+to a non-root UID without using a compatible image variant would make its
+storage paths unsupported. The Qdrant service is ClusterIP-only, its data is
+PVC-backed, the deployment disables privilege escalation and drops all Linux
+capabilities, and its NetworkPolicy only allows selected in-cluster clients.
+Do not expose the API externally without authentication.
+
 Kyverno is installed declaratively by
 [`deploy/argocd/kyverno-app.yaml`](../deploy/argocd/kyverno-app.yaml) in the
 existing Argo CD namespace (`argocd`). The security Application is also

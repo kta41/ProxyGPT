@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "proxygpt-rag"
+version = "0.1.0"
+description = "Private Markdown RAG pipeline for ProxyGPT"
+requires-python = ">=3.12"
+dependencies = [
+  "qdrant-client==1.19.1",
+]
+
+[project.scripts]
+proxygpt-rag = "proxygpt_rag.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

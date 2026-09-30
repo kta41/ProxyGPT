@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rag-vector-store
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kta41/ProxyGPT.git
+    path: deploy/rag/overlays/prod
+    targetRevision: main
+    kustomize: {}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

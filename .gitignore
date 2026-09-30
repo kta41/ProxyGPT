@@ -5,5 +5,9 @@ Infrastructure/CertManager/CA/*-secret.yaml
 .env
 
 .vscode/
+.venv/
+*.egg-info/
+__pycache__/
+*.py[cod]
 docs/ROADMAP.md
 .github/copilot-instructions.md

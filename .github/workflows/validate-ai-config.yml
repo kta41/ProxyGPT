@@ -6,6 +6,7 @@ on:
       - ".github/workflows/validate-ai-config.yml"
       - "deploy/**"
       - "Infrastructure/**"
+      - "rag/**"
       - "scripts/**"
       - "README.md"
       - "docs/**"
@@ -15,6 +16,7 @@ on:
       - ".github/workflows/validate-ai-config.yml"
       - "deploy/**"
       - "Infrastructure/**"
+      - "rag/**"
       - "scripts/**"
       - "README.md"
       - "docs/**"
@@ -38,6 +40,7 @@ jobs:
       - name: Install validation dependencies
         run: |
           python3 -m pip install --disable-pip-version-check PyYAML
+          python3 -m pip install --disable-pip-version-check -e rag
 
       - name: Validate shell syntax
         run: |
@@ -47,6 +50,9 @@ jobs:
 
       - name: Validate YAML and render Kustomize overlays
         run: bash scripts/validate-manifests.sh
+
+      - name: Test RAG ingestion and retrieval pipeline
+        run: python3 -m unittest discover -s rag/tests -v
 
       - name: Secret scanning
         uses: gitleaks/gitleaks-action@v2

@@ -60,6 +60,7 @@ render_overlays() {
     "$ROOT_DIR/deploy/openwebui/overlays/prod"
     "$ROOT_DIR/deploy/mcp/overlays/prod"
     "$ROOT_DIR/deploy/security/overlays/prod"
+    "$ROOT_DIR/deploy/rag/overlays/prod"
   )
 
   for overlay in "${overlays[@]}"; do

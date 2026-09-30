@@ -86,7 +86,9 @@ LiteLLM is published through Traefik at `[https://litellm.kta41.local](https://l
 │   ├── postgres/
 │   ├── litellm/
 │   ├── openwebui/
-│   └── security/        # Kyverno policies and NetworkPolicies
+│   ├── security/        # Kyverno policies and NetworkPolicies
+│   └── rag/             # Qdrant vector store
+├── rag/                 # Local RAG ingestion, retrieval, and citation CLI
 ├── Infrastructure/      # Argo CD, cert-manager, Traefik, and Gitea
 ├── docs/
 └── scripts/
@@ -184,6 +186,21 @@ kubectl get networkpolicies -n default
 ```
 
 Kyverno currently reports policy violations for workloads that have not yet been migrated to the baseline. This is expected while the policies remain in `Audit` mode; it does not block deployment.
+
+### Private RAG baseline (M2)
+
+M2 adds a persistent, in-cluster Qdrant vector store and a local CLI that
+ingests Markdown, creates embeddings through Ollama, retrieves source chunks,
+and can generate source-grounded answers through LiteLLM. It uses the
+`qwen3-embedding:0.6b` embedding model by default. The CLI runs on an operator
+workstation; Qdrant remains a ClusterIP-only service with a persistent PVC and
+no Ingress or NodePort.
+
+The implementation is in [`rag/`](rag/) and the Qdrant manifests are managed
+by [`deploy/argocd/rag-app.yaml`](deploy/argocd/rag-app.yaml). See
+[`docs/RAG.md`](docs/RAG.md) for setup and usage. M2 does not change Open
+WebUI's built-in Knowledge Base behavior; the CLI exposes retrieval and
+grounded answers as a separately testable foundation.
 
 ---
 
