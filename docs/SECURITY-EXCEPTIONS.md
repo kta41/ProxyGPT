@@ -33,6 +33,12 @@ the baseline observable without blocking existing workloads that still use
 legacy image references or have not yet been fully hardened. Individual rules
 can move to `Enforce` after the audit report is clean.
 
+The baseline excludes the `argocd`, `cert-manager`, `kube-system` and
+`kyverno` namespaces. Those components are installed or managed by cluster
+platform tooling and are not owned by this repository's application
+manifests. Their security posture must be reviewed separately before adding
+them to the enforcement scope.
+
 Kyverno is installed declaratively by
 [`deploy/argocd/kyverno-app.yaml`](../deploy/argocd/kyverno-app.yaml) in the
 existing Argo CD namespace (`argocd`). The security Application is also

@@ -17,6 +17,14 @@ spec:
           - resources:
               kinds:
                 - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - argocd
+                - cert-manager
+                - kube-system
+                - kyverno
       validate:
         message: Privileged containers are not permitted.
         pattern:
@@ -30,6 +38,14 @@ spec:
           - resources:
               kinds:
                 - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - argocd
+                - cert-manager
+                - kube-system
+                - kyverno
       validate:
         message: Privilege escalation must be disabled.
         pattern:
@@ -43,6 +59,14 @@ spec:
           - resources:
               kinds:
                 - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - argocd
+                - cert-manager
+                - kube-system
+                - kyverno
       validate:
         message: Pods must use the RuntimeDefault seccomp profile.
         pattern:
@@ -56,6 +80,14 @@ spec:
           - resources:
               kinds:
                 - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - argocd
+                - cert-manager
+                - kube-system
+                - kyverno
       validate:
         message: Every container must define CPU and memory requests and limits.
         pattern:
@@ -88,6 +120,14 @@ spec:
           - resources:
               kinds:
                 - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - argocd
+                - cert-manager
+                - kube-system
+                - kyverno
       validate:
         message: Images must not use the latest tag.
         pattern:
@@ -100,6 +140,14 @@ spec:
           - resources:
               kinds:
                 - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - argocd
+                - cert-manager
+                - kube-system
+                - kyverno
       validate:
         message: hostPath volumes require a reviewed exception.
         pattern:

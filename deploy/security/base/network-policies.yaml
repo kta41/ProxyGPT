@@ -83,6 +83,13 @@ spec:
         - protocol: TCP
           port: 5432
     - to:
+        - podSelector:
+            matchLabels:
+              app: web-search-mcp
+      ports:
+        - protocol: TCP
+          port: 8000
+    - to:
         - ipBlock:
             cidr: 0.0.0.0/0
       ports:
