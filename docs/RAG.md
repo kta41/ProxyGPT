@@ -24,8 +24,12 @@ uses its own Qdrant collection; it is not required for normal chat.
 
 ## Deployment
 
-Open WebUI is pinned to v0.9.6, the minimum version required by the official
-`oikb` synchronizer. Qdrant is deployed by the
+Open WebUI is pinned to the official v0.11.4 image digest. This release
+contains the Alembic revision recorded in the existing PostgreSQL database and
+is newer than the v0.9.6 minimum required by the official `oikb`
+synchronizer. Keep the UI image and its persistent database migrations
+compatible; do not downgrade the image across a database migration. Qdrant is
+deployed by the
 [`rag-vector-store` Argo CD Application](../deploy/argocd/rag-app.yaml) with a
 10 GiB PVC and a ClusterIP-only service. Argo CD pruning is disabled for the
 PVC; do not delete it during ordinary reconciliation. The PVC uses the
