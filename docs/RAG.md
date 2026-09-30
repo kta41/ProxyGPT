@@ -39,11 +39,11 @@ The Qdrant image runs as UID 0 by default. The deployment documents this
 compatibility exception and still disables privilege escalation, drops Linux
 capabilities, and uses the RuntimeDefault seccomp profile.
 
-The `openwebui-ai-config` repository deploys the official OIKB daemon. It
-reads `knowledge/.oikb.yaml`, uses the existing `openwebui-sync-auth` Secret,
-and periodically syncs the configured Git source into the Git-managed
-Knowledge Base. The daemon only has network access to Open WebUI and HTTPS
-egress for the public GitHub source.
+The `openwebui-ai-config` repository deploys the official OIKB daemon. Argo CD
+renders its tracked Markdown files into a ConfigMap mounted at `/knowledge`.
+OIKB reads `knowledge/.oikb.yaml`, uses the existing `openwebui-sync-auth`
+Secret, and syncs the mounted files into the Git-managed Knowledge Base. It
+does not need a GitHub token or external network access.
 
 ## Set up the Git-managed Knowledge Base
 
@@ -61,14 +61,14 @@ egress for the public GitHub source.
    Copy its ID from the Knowledge Base URL. Create a different Knowledge Base
    for documents uploaded manually.
 4. In `openwebui-ai-config/knowledge/.oikb.yaml`, configure the Git Knowledge
-   Base ID:
+   Base ID and the mounted local source:
 
    ```yaml
    defaults:
      interval: 1h
    sources:
      - name: proxygpt-knowledge
-       source: github:kta41/openwebui-ai-config/knowledge
+       source: /knowledge
        kb-id: REPLACE_WITH_KNOWLEDGE_BASE_ID
        filter:
          include:
@@ -76,12 +76,13 @@ egress for the public GitHub source.
            - "**/*.md"
    ```
 
-   The source is public and read-only. Do not add an API key or token to this
-   file. The existing `openwebui-sync-auth` Secret supplies the Open WebUI API
-   key to OIKB at runtime.
-5. Push the configuration change to `openwebui-ai-config`. Argo CD updates the
-   ConfigMap and restarts OIKB; it performs an initial sync and checks Git
-   hourly. Changes to Markdown files are picked up on the next check.
+   Add each Markdown file to the `openwebui-knowledge-source` generator in
+   `kustomization.yaml`. Do not add an API key or token to Git. The existing
+   `openwebui-sync-auth` Secret supplies the Open WebUI API key to OIKB at
+   runtime.
+5. Push the configuration change to `openwebui-ai-config`. Argo CD regenerates
+   the Markdown ConfigMap and rolls out OIKB. It syncs the mounted directory
+   on startup and checks it hourly; Git changes roll out through Argo CD.
 6. Upload manual documents through **Workspace → Knowledge**. They remain
    independent of the Git synchronization.
 7. Attach either Knowledge Base to a chat with `#` or to a model in

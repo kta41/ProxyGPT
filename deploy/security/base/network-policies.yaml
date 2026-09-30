@@ -124,12 +124,6 @@ spec:
       ports:
         - protocol: TCP
           port: 8080
-    - to:
-        - ipBlock:
-            cidr: 0.0.0.0/0
-      ports:
-        - protocol: TCP
-          port: 443
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

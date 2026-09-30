@@ -190,27 +190,23 @@ The checked-in manifests are not proof that the cluster has reconciled the new p
 ### Private RAG baseline (M2)
 
 Open WebUI's native Knowledge Bases use the in-cluster Qdrant vector store.
-Documents can be uploaded and managed in **Workspace → Knowledge**; selected
-Markdown files from `openwebui-ai-config/knowledge` can be synchronized into a
-separate Knowledge Base by the official `oikb` daemon. After setup and a
-successful sync, either source can be attached to a chat or model in Open WebUI.
+Manual uploads and Git-managed Markdown use separate Knowledge Bases. Argo CD
+renders `openwebui-ai-config/knowledge` into a ConfigMap mounted by the official
+`oikb` daemon, which synchronizes it into the Git Knowledge Base without giving
+OIKB direct GitHub credentials or egress. Either source can be attached to a
+chat or model in Open WebUI after indexing succeeds.
 
 Open WebUI uses the local `qwen3-embedding:0.6b` model through LiteLLM for
 embeddings. The standalone `proxygpt-rag` CLI remains an optional development
 and retrieval tool; its collection is separate from Open WebUI's native
 Knowledge Bases. See [`docs/RAG.md`](docs/RAG.md) for setup and usage.
 
-The repository contains the Qdrant deployment, PVC, service, network policy,
-and Argo CD Application. This is only the infrastructure portion of M2: the
-Git-managed Knowledge Base requires a real ID created in Open WebUI and entered
-in the separate `openwebui-ai-config` repository. The full setup and runtime
-checks are in [`docs/RAG.md`](docs/RAG.md).
-
-At the last runtime inspection, Qdrant and its PVC were healthy, but Open WebUI
-was in CrashLoop and the external Argo CD sync had failed waiting for OIKB.
-The external source list was still empty. M2 therefore remains operationally
-incomplete until Open WebUI/OIKB recover, the Knowledge Base ID is configured,
-and a cited answer is verified end to end.
+The Qdrant deployment, PVC, service, network policy, Argo CD Application, both
+Knowledge Bases, and OIKB configuration are in place. Runtime checks confirmed
+Open WebUI and Qdrant are ready and OIKB is deployed. M2 remains incomplete:
+LiteLLM's embedding request currently fails because Ollama is not reachable at
+`127.0.0.1:11435`; indexing and an end-to-end cited answer still need to be
+verified. See [`docs/RAG.md`](docs/RAG.md).
 
 ### MCP and AI guardrails
 
