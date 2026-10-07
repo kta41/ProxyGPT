@@ -42,7 +42,43 @@ Secrets are never committed. If you answer `no`, commit and push the changed
 overlays manually before syncing Argo CD.
 
 The installer also checks the local Ollama endpoint at
-`http://127.0.0.1:11435` and requires the `qwen3:14b` and `qwen3:30b` models.
+port `11435` and requires the `qwen3:14b` and `qwen3:30b` models. On WSL2,
+when `OLLAMA_API_BASE` is empty, it uses the Windows host address from
+`/etc/resolv.conf`; set `OLLAMA_API_BASE` explicitly for another network
+topology.
+Set `OLLAMA_API_BASE` in the environment or `.env` when Ollama is reachable at
+another host address; the installer writes that value into the LiteLLM
+production overlay so Argo CD preserves the selected endpoint.
+For Windows-hosted Ollama, configure it to listen on `0.0.0.0:11435` and
+allow TCP `11435` through Windows Firewall. Listening only on Windows
+`127.0.0.1` is not reachable from the WSL/K3s network namespace.
+If Ollama exposes only the IPv6 listener `:::11435`, bridge it to IPv4 from
+an elevated PowerShell:
+
+```powershell
+netsh interface portproxy add v4tov6 `
+  listenaddress=0.0.0.0 `
+  listenport=11435 `
+  connectaddress=::1 `
+  connectport=11435
+New-NetFirewallRule `
+  -DisplayName "Ollama WSL 11435" `
+  -Direction Inbound `
+  -Action Allow `
+  -Protocol TCP `
+  -LocalPort 11435 `
+  -Profile Domain,Private,Public
+```
+
+In the WSL2 setup documented here, the resulting endpoint is
+`http://10.255.255.254:11435`. Verify it before syncing LiteLLM:
+
+```bash
+curl -fsS http://10.255.255.254:11435/api/tags
+```
+
+Do not use `192.168.1.1` (the LAN gateway) or `0.0.0.0` as a client
+destination. Keep `OLLAMA_API_BASE` in the local `.env`, never in Git.
 On Windows, set `OLLAMA_MAX_LOADED_MODELS=1` and restart Ollama so both models
 remain visible to Open WebUI while only the selected model is loaded:
 

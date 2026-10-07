@@ -6,7 +6,7 @@ ENV_FILE=""
 INFRASTRUCTURE_EXISTS=""
 ARGOCD_VERSION="${ARGOCD_VERSION:-v2.13.3}"
 CERT_MANAGER_VERSION="${CERT_MANAGER_VERSION:-v1.16.2}"
-OLLAMA_API_BASE="${OLLAMA_API_BASE:-http://127.0.0.1:11435}"
+OLLAMA_API_BASE="${OLLAMA_API_BASE:-}"
 OLLAMA_REQUIRED_MODELS=("qwen3:14b" "qwen3:30b")
 
 usage() {
@@ -31,6 +31,18 @@ if [[ -n "$ENV_FILE" ]]; then
   # shellcheck disable=SC1090
   source "$ENV_FILE"
   set +a
+fi
+
+if [[ -z "$OLLAMA_API_BASE" ]]; then
+  WINDOWS_HOST_IP="$(
+    awk '$1 == "nameserver" && $2 ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/ { print $2; exit }' \
+      /etc/resolv.conf 2>/dev/null || true
+  )"
+  if [[ -n "$WINDOWS_HOST_IP" ]]; then
+    OLLAMA_API_BASE="http://${WINDOWS_HOST_IP}:11435"
+  else
+    OLLAMA_API_BASE="http://127.0.0.1:11435"
+  fi
 fi
 
 ask() {
@@ -172,6 +184,29 @@ for filename in (ingress, certificate):
 PY
 }
 
+replace_ollama_endpoint() {
+  local kustomization=$1 desired=$2
+  OLLAMA_API_BASE="$desired" python3 - "$kustomization" <<'PY'
+import os
+import pathlib
+import re
+import sys
+
+path = pathlib.Path(sys.argv[1])
+text = path.read_text()
+replacement = os.environ["OLLAMA_API_BASE"]
+updated, count = re.subn(
+    r"(?m)^(\s*- ollama_api_base=).*$",
+    rf"\g<1>{replacement}",
+    text,
+    count=1,
+)
+if count != 1:
+    raise SystemExit(f"ollama_api_base not found in {path}")
+path.write_text(updated)
+PY
+}
+
 replace_domain \
   "$ROOT_DIR/deploy/litellm/overlays/prod/kustomization.yaml" \
   "$ROOT_DIR/deploy/litellm/overlays/prod/ingress.yaml" \
@@ -182,6 +217,9 @@ replace_domain \
   "$ROOT_DIR/deploy/openwebui/overlays/prod/ingress.yaml" \
   "$ROOT_DIR/deploy/openwebui/overlays/prod/cert.yaml" \
   "$OPENWEBUI_DOMAIN"
+replace_ollama_endpoint \
+  "$ROOT_DIR/deploy/litellm/overlays/prod/kustomization.yaml" \
+  "$OLLAMA_API_BASE"
 
 if ! kubectl kustomize "$ROOT_DIR/deploy/litellm/overlays/prod" >/dev/null ||
    ! kubectl kustomize "$ROOT_DIR/deploy/openwebui/overlays/prod" >/dev/null; then

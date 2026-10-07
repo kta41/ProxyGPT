@@ -10,6 +10,7 @@ configMapGenerator:
     literals:
       - subdomain=litellm
       - full_domain=litellm.kta41.local
+      - ollama_api_base=http://127.0.0.1:11435
 
 # Esta es la "magia" que busca los placeholders y los pisa
 replacements:
@@ -37,6 +38,17 @@ replacements:
         options:
           delimiter: "/"
           index: 2 # Esto apunta a la parte del host en la URL https://host/
+
+  - source:
+      kind: ConfigMap
+      name: litellm-config
+      fieldPath: data.ollama_api_base
+    targets:
+      - select:
+          kind: Deployment
+          name: litellm-deployment
+        fieldPaths:
+          - spec.template.spec.containers.0.env.[name=OLLAMA_API_BASE].value
 
 # ------------------------------------------------------------------------------
 
