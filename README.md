@@ -86,15 +86,29 @@ LiteLLM is published through Traefik at `[https://litellm.kta41.local](https://l
 │   ├── postgres/
 │   ├── litellm/
 │   ├── openwebui/
+│   ├── mcp/             # Tool servers (Tavily) for Open WebUI
 │   ├── security/        # Kyverno policies and NetworkPolicies
 │   └── rag/             # Qdrant vector store
 ├── rag/                 # Local RAG ingestion, retrieval, and citation CLI
 ├── Infrastructure/      # Argo CD, cert-manager, Traefik, and Gitea
 ├── docs/
-└── scripts/
+├── scripts/
+├── .clinerules/         # Cline agent rules and workflows for this repo
+└── .github/             # CI: Gitleaks, Trivy, manifest validation
 ```
 
 The repository is named **ProxyGPT**. The `deploy/` directory contains the product manifests and avoids duplicating the name in a path such as `ProxyGPT/Proxygpt/`.
+
+### AI-Assisted Development (Cline)
+
+Agent-driven changes in this repository follow versioned rules and workflows:
+
+- `.clinerules/rules.md` — workspace rules: sources of truth (`docs/CONFIG-GITOPS.md`, `docs/INSTALL.md`, `docs/SECURITY-EXCEPTIONS.md`), hard limits (**Argo CD is the only applier**, no direct pushes to `main`, `.env` is never read or committed), and repo conventions.
+- `.clinerules/workflows/validate.md` — pre-PR validation: `scripts/validate-manifests.sh`, explicit render of every kustomization, secret/floating-tag/Kyverno checks on the diff, and RAG reindexing rules.
+- `.clinerules/workflows/incident-debug.md` — read-only incident debugging: cluster state (`get`/`describe`/`logs`), Alembic revision checks (propose only, never touch the DB), NetworkPolicy and Kyverno report review.
+- `.clinerules/workflows/security-review.md` — checklist for changes touching `deploy/security/`, NetworkPolicies, or `docs/SECURITY-EXCEPTIONS.md`.
+
+Global agent rules (shared across repositories) live in the private [cline-config](https://github.com/kta41/cline-config) repository and are installed under `~/.clinerules/`.
 
 ### Migrating the Remote and Local Directory
 
@@ -462,6 +476,8 @@ sudo systemctl start k3s
 
 - [Complete installation guide](docs/INSTALL.md)
 - [GitOps configuration contract](docs/CONFIG-GITOPS.md)
+- [Security exceptions register](docs/SECURITY-EXCEPTIONS.md)
+- [Agent rules and workflows (Cline)](.clinerules/rules.md)
 - [Open WebUI GitOps configuration](docs/OPENWEBUI-GITOPS.md)
 - [Open WebUI configuration repository](https://github.com/kta41/openwebui-ai-config)
 - [Open WebUI documentation](https://docs.openwebui.com/)
