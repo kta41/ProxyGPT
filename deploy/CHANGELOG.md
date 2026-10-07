@@ -1,3 +1,12 @@
+[Added/Changed] - 2026-10-07
+LiteLLM / Ollama connectivity
+
+    The Ollama endpoint was configurable during installation but the generated
+    LiteLLM Deployment still hardcoded 127.0.0.1:11435. The production
+    Kustomize overlay now propagates OLLAMA_API_BASE into the Deployment, and
+    the LiteLLM egress policy explicitly allows TCP 11435. This keeps Git,
+    Argo CD, and the runtime endpoint aligned.
+
 [Added/Changed] - 2026-09-09
 Argo CD / K3s Infrastructure on WSL2
 

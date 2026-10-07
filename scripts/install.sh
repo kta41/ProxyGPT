@@ -172,6 +172,29 @@ for filename in (ingress, certificate):
 PY
 }
 
+replace_ollama_endpoint() {
+  local kustomization=$1 desired=$2
+  OLLAMA_API_BASE="$desired" python3 - "$kustomization" <<'PY'
+import os
+import pathlib
+import re
+import sys
+
+path = pathlib.Path(sys.argv[1])
+text = path.read_text()
+replacement = os.environ["OLLAMA_API_BASE"]
+updated, count = re.subn(
+    r"(?m)^(\s*- ollama_api_base=).*$",
+    rf"\g<1>{replacement}",
+    text,
+    count=1,
+)
+if count != 1:
+    raise SystemExit(f"ollama_api_base not found in {path}")
+path.write_text(updated)
+PY
+}
+
 replace_domain \
   "$ROOT_DIR/deploy/litellm/overlays/prod/kustomization.yaml" \
   "$ROOT_DIR/deploy/litellm/overlays/prod/ingress.yaml" \
@@ -182,6 +205,9 @@ replace_domain \
   "$ROOT_DIR/deploy/openwebui/overlays/prod/ingress.yaml" \
   "$ROOT_DIR/deploy/openwebui/overlays/prod/cert.yaml" \
   "$OPENWEBUI_DOMAIN"
+replace_ollama_endpoint \
+  "$ROOT_DIR/deploy/litellm/overlays/prod/kustomization.yaml" \
+  "$OLLAMA_API_BASE"
 
 if ! kubectl kustomize "$ROOT_DIR/deploy/litellm/overlays/prod" >/dev/null ||
    ! kubectl kustomize "$ROOT_DIR/deploy/openwebui/overlays/prod" >/dev/null; then

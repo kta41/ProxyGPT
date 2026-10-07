@@ -43,6 +43,9 @@ overlays manually before syncing Argo CD.
 
 The installer also checks the local Ollama endpoint at
 `http://127.0.0.1:11435` and requires the `qwen3:14b` and `qwen3:30b` models.
+Set `OLLAMA_API_BASE` in the environment or `.env` when Ollama is reachable at
+another host address; the installer writes that value into the LiteLLM
+production overlay so Argo CD preserves the selected endpoint.
 On Windows, set `OLLAMA_MAX_LOADED_MODELS=1` and restart Ollama so both models
 remain visible to Open WebUI while only the selected model is loaded:
 
