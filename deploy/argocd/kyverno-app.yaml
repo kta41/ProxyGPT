@@ -18,8 +18,10 @@ spec:
           # RenewDeadline = 5x retryPeriod (default 2s -> 10s, muy justo cuando el
           # API server de WSL2 sufre picos de latencia y el controller renuncia al
           # liderazgo y se reinicia). Con 6s -> 30s de margen.
-          extraArgs:
-            leaderElectionRetryPeriod: 6s
+          # (nota: admission anida extraArgs bajo .container)
+          container:
+            extraArgs:
+              leaderElectionRetryPeriod: 6s
         backgroundController:
           replicas: 1
           extraArgs:
