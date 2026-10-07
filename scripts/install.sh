@@ -6,7 +6,7 @@ ENV_FILE=""
 INFRASTRUCTURE_EXISTS=""
 ARGOCD_VERSION="${ARGOCD_VERSION:-v2.13.3}"
 CERT_MANAGER_VERSION="${CERT_MANAGER_VERSION:-v1.16.2}"
-OLLAMA_API_BASE="${OLLAMA_API_BASE:-http://127.0.0.1:11435}"
+OLLAMA_API_BASE="${OLLAMA_API_BASE:-}"
 OLLAMA_REQUIRED_MODELS=("qwen3:14b" "qwen3:30b")
 
 usage() {
@@ -31,6 +31,18 @@ if [[ -n "$ENV_FILE" ]]; then
   # shellcheck disable=SC1090
   source "$ENV_FILE"
   set +a
+fi
+
+if [[ -z "$OLLAMA_API_BASE" ]]; then
+  WINDOWS_HOST_IP="$(
+    awk '$1 == "nameserver" && $2 ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/ { print $2; exit }' \
+      /etc/resolv.conf 2>/dev/null || true
+  )"
+  if [[ -n "$WINDOWS_HOST_IP" ]]; then
+    OLLAMA_API_BASE="http://${WINDOWS_HOST_IP}:11435"
+  else
+    OLLAMA_API_BASE="http://127.0.0.1:11435"
+  fi
 fi
 
 ask() {
